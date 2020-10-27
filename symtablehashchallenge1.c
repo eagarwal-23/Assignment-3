@@ -6,7 +6,7 @@
 enum{BUCKET_COUNT = 509};
 enum{MAX_BUCKETS = 65521};
 static size_t bucketCounts[] = {509, 1021, 2039, 4093, 8191, 16381,
-                         32749, 65521};
+                                32749, 65521};
 
 struct STNode {
    const char* key;
@@ -42,7 +42,6 @@ static void SymTable_rehash(SymTable_T symTable) {
    int newBucketCount = bucketCounts[symTable->bucketCountIndex + 1];
 
    SymTable_T newSymTable;
-   SymTable_T oldSymTable = symTable;
 
    int i, hashCode;
 
@@ -54,51 +53,42 @@ static void SymTable_rehash(SymTable_T symTable) {
 
    newSymTable = (SymTable_T)malloc(sizeof(struct SymTable));
    if (newSymTable != NULL) {
-      
-   }
+      newSymTable->bucketsArray = (struct STNode **)calloc(newBucketCount, sizeof(struct STNode *));
+      if (newSymTable->bucketsArray != NULL) {
+         newSymTable->numBindings = 0;
+         newSymTable->bucketCountIndex = symTable->bucketCountIndex + 1;
+         newSymTable->numBuckets = newBucketCount;
+         for (i = 0; i < oldBucketCount; i++) {
+            for (currentNode = symTable->bucketsArray[i];
+                 currentNode != NULL;
+                 currentNode = currentNode->next) {
+               key = currentNode -> key;
+               value = currentNode -> value;
 
-   newSymTable->bucketsArray = (struct STNode **)calloc(newBucketCount, sizeof(struct STNode *));
+               newNode = (struct STNode*)malloc(sizeof(struct STNode));
+               if (newNode != NULL) {
+                  newNode->key = (char *)malloc(strlen(key) + 1);
+                  if (newNode->key != NULL) {
+                     hashCode = SymTable_hash(key, newBucketCount);
 
-   if (newSymTable->bucketsArray == NULL) {
-      free(newSymTable);
-      return NULL;
-   }
+                     strcpy((char*)newNode->key, key);
+                     newNode->value = value;
 
-   newSymTable->numBindings = 0;
-   newSymTable->bucketCountIndex = oldSymTable->bucketCountIndex + 1;
-   newSymTable->numBuckets = newBucketCount;
-
-   for (i = 0; i < oldBucketCount; i++) {
-      for (currentNode = oldSymTable->bucketsArray[i];
-           currentNode != NULL;
-           currentNode = currentNode->next) {
-         key = currentNode -> key;
-         value = currentNode -> value;
-
-         newNode = (struct STNode*)malloc(sizeof(struct STNode));
-         if (newNode == NULL) {
-            return NULL;
+                     newNode->next = newSymTable->bucketsArray[hashCode];
+                     newSymTable->bucketsArray[hashCode] = newNode;
+                     newSymTable-> numBindings++;
+                     free((char *)currentNode->key);
+                     free(currentNode);
+                  }
+               }
+            }
          }
-
-         newNode->key = (char *)malloc(strlen(key) + 1);
-         if (newNode->key == NULL) {
-            return NULL;
-         }
-
-         hashCode = SymTable_hash(key, newBucketCount);
-
-         strcpy((char*)newNode->key, key);
-         newNode->value = value;
-
-         newNode->next = newSymTable->bucketsArray[hashCode];
-         newSymTable->bucketsArray[hashCode] = newNode;
-         newSymTable-> numBindings++;
-         free(currentNode->key);
-         free(currentNode);
       }
    }
-   oldSymTable = newSymTable;
+
+   symTable = newSymTable;
 }
+
 
 SymTable_T SymTable_new(void) {
    SymTable_T symTable;
@@ -150,7 +140,6 @@ int SymTable_put(SymTable_T symTable, const char* key,
                  const void *value) {
    struct STNode *currentNode;
    struct STNode *newNode;
-   SymTable_T tempSymTable;
    int hashCode;
 
    assert(symTable != NULL);
@@ -181,12 +170,8 @@ int SymTable_put(SymTable_T symTable, const char* key,
    if ((symTable->numBindings > symTable->numBuckets) &&
        (symTable->numBuckets < (int)MAX_BUCKETS)) {
 
-      tempSymTable = SymTable_rehash(symTable);
-
-      if (tempSymTable != NULL) {
-         symTable = tempSymTable;
-         hashCode = SymTable_hash(key, symTable->numBuckets);
-      }
+      SymTable_rehash(symTable);
+      hashCode = SymTable_hash(key, symTable->numBuckets);
    }
 
    strcpy((char*)newNode->key, key);
