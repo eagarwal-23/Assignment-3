@@ -3,14 +3,12 @@
 #include <malloc.h>
 #include "symtable.h"
 
-enum{BUCKET_COUNT = 509};
 enum{MAX_BUCKETS = 65521};
-size_t bucketCounts[] = {509, 1021, 2039, 4093, 8191, 16381,
-                         32749, 65521};
+static size_t bucketCounts[] = {509, 1021, 2039, 4093, 8191, 16381, 32749, 65521};
 
 struct STNode {
-   const char* key;
-   const void* value;
+   const char *key;
+   const void *value;
    struct STNode *next;
 };
 
@@ -37,41 +35,52 @@ static size_t SymTable_hash(const char *pcKey, size_t uBucketCount) {
    return uHash % uBucketCount;
 }
 
-static SymTable_T SymTable_rehash(SymTable_T symTable) {
-   int oldBucketCount = symTable->numBuckets;
-   int newBucketCount = bucketCounts[symTable->bucketCountIndex + 1];
-   SymTable_T newSymTable;
-   SymTable_T oldSymTable = symTable;
-   int hashCode;
-   struct STNode *currentNode;
+static void SymTable_rehash(SymTable_T symTable) {
+   struct STNode **oldBucketsArray, **newBucketsArray;
+   struct STNode *currentNode, *newNode, *temporaryNode;
+   int i, hashCode, oldNumBuckets, newNumBuckets, newBucketCountIndex;
 
-   newSymTable = (SymTable_T)malloc(sizeof(struct SymTable));
-   if (newSymTable == NULL) {
-      return NULL;
+   oldNumBuckets = symTable->numBuckets;
+   oldBucketsArray = symTable->bucketsArray;
+   newBucketCountIndex = symTable->bucketCountIndex + 1;
+   newNumBuckets = bucketCounts[newBucketCountIndex];
+
+   newBucketsArray = (struct STNode **)calloc(newNumBuckets,
+                                              sizeof(struct STNode *));
+   if (newBucketsArray == NULL) {
+      return ;
    }
 
-   newSymTable->bucketsArray = (struct STNode **)calloc(newBucketCount,
-                                                        sizeof(struct STNode *));
+   for (i = 0; i < oldNumBuckets; i++) {
+      currentNode = oldBucketsArray[i];
+      while (currentNode != NULL) {
+         newNode = (struct STNode*)malloc(sizeof(struct STNode));
+         if (newNode == NULL) {
+            return ;
+         }
 
-   if (newSymTable->bucketsArray == NULL) {
-      free(newSymTable);
-      return NULL;
-   }
+         newNode->key = (char *)malloc(strlen(currentNode->key) + 1);
+         if (newNode->key == NULL) {
+            return ;
+         }
 
-   newSymTable->numBindings = oldSymTable->numBindings;
-   newSymTable->bucketCountIndex = oldSymTable->bucketCountIndex + 1;
-   newSymTable->numBuckets = newBucketCount;
+         hashCode = SymTable_hash(currentNode->key, newNumBuckets);
+         strcpy((char*)newNode->key, currentNode->key);
+         newNode->value = currentNode->value;
+         newNode->next = newBucketsArray[hashCode];
+         newBucketsArray[hashCode] = newNode;
+         temporaryNode = currentNode->next;
+         currentNode = temporaryNode;
 
-   for (hashCode = 0; hashCode < oldBucketCount; hashCode++) {
-      for (currentNode = oldSymTable->bucketsArray[hashCode];
-           currentNode != NULL;
-           currentNode = currentNode->next) {
-         SymTable_put(newSymTable, currentNode->key, currentNode->value);
       }
    }
 
-   return newSymTable;
+   free(symTable->bucketsArray);
+   symTable->bucketsArray = newBucketsArray;
+   symTable->numBuckets = newNumBuckets;
+   symTable->bucketCountIndex = newBucketCountIndex;
 }
+
 
 SymTable_T SymTable_new(void) {
    SymTable_T symTable;
@@ -85,7 +94,6 @@ SymTable_T SymTable_new(void) {
                                                      sizeof(struct STNode *));
 
    if (symTable->bucketsArray == NULL) {
-      free(symTable);
       return NULL;
    }
 
@@ -98,15 +106,17 @@ SymTable_T SymTable_new(void) {
 
 void SymTable_free(SymTable_T symTable) {
    struct STNode *currentNode;
+   struct STNode *temporaryNode;
    int hashCode;
 
    assert(symTable != NULL);
    for (hashCode = 0; hashCode < symTable->numBuckets; hashCode++) {
-      for (currentNode = symTable->bucketsArray[hashCode];
-           currentNode != NULL;
-           currentNode = currentNode->next) {
+      currentNode = symTable->bucketsArray[hashCode];
+      while (currentNode != NULL) {
+         temporaryNode = currentNode->next;
          free((char *)currentNode->key);
          free(currentNode);
+         currentNode = temporaryNode;
       }
    }
 
@@ -123,7 +133,6 @@ int SymTable_put(SymTable_T symTable, const char* key,
                  const void *value) {
    struct STNode *currentNode;
    struct STNode *newNode;
-   SymTable_T tempSymTable;
    int hashCode;
 
    assert(symTable != NULL);
@@ -152,12 +161,9 @@ int SymTable_put(SymTable_T symTable, const char* key,
 
    symTable->numBindings++;
    if ((symTable->numBindings > symTable->numBuckets) &&
-       (symTable->numBuckets < (int)MAX_BUCKETS)) {
-      tempSymTable = SymTable_rehash(symTable);
-      if (tempSymTable != NULL) {
-         symTable = tempSymTable;
-         hashCode = SymTable_hash(key, symTable->numBuckets);
-      }
+       (symTable->numBuckets < (int) MAX_BUCKETS)) {
+      SymTable_rehash(symTable);
+      hashCode = SymTable_hash(key, symTable->numBuckets);
    }
 
    strcpy((char*)newNode->key, key);
