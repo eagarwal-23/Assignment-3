@@ -3,12 +3,12 @@ Assignment 3 readme File
 ------------------------------------------------------------------------
 What is your name?
 
-
+Eesha Agarwal
 
 ------------------------------------------------------------------------
 How many late days are you using on this assignment?
 
-
+0
 
 ------------------------------------------------------------------------
 What authorized sources of information did you use to complete
@@ -16,7 +16,25 @@ the assignment? COPY THE LIST of authorized sources of information
 given in the "Policies" web page to this section of the readme file,
 and edit it as appropriate.
 
+The course's lectures.
 
+The course's precepts.
+
+The course's website.
+
+Documents that are referenced directly by the course's website.
+Such documents include the course's lecture slides and precept handouts.
+
+The course's textbooks.
+
+The man pages on the armlab cluster.
+
+The course's current staff members outside of class time through
+meetings.
+
+The course's current staff members outside of class time through Ed.
+
+Current lab teaching assistants through visits to the course labs.
 
 ------------------------------------------------------------------------
 What unauthorized sources of information did you use to complete the
@@ -30,19 +48,32 @@ interaction, may additionally require the interaction being reported
 to the Committee on Discipline. Write "None" if you used no
 unauthorized sources of information.
 
-
+None.
 
 ------------------------------------------------------------------------
 What is your assessment of the assignment? Was it helpful? Was it fun?
 
-
+I thoroughly enjoyed this assignment, and it allowed me to gain a lot
+of helpful experience working with dynamic memory allocation in C as
+well as with working with GDB. While I was initially daunted by the idea
+of dynamic memory allocation specially, running into many seg faults and
+being able to successfully debug them gave me a great deal of confidence
+and facilitated me to better grasp the idea of dynamic memory
+allocation. Moreover, I really liked the structure of the assignment,
+implementing the linked list version of the symbol table first allowed
+me to focus on the hashing function and expanding of the tables for the
+hashTable implementation since a lot of the actual code otherwise was
+the same. GDB was a very useful tool to me throughout this assignment,
+and helped me to figure out exactly where my program was going wrong
+multiple times. Thank you for creating such an exciting and interesting
+assignment!
 
 ------------------------------------------------------------------------
 (optional) What information can you provide about your submission that
 will help your grader to grade it in the most favorable light? In
 particular, what bugs are in your submission?
 
-
+None.
 
 ------------------------------------------------------------------------
 What warnings does splint generate on symtablelist.c, and what are your
@@ -50,7 +81,19 @@ disagreements with them? Copy the splint warnings here, and express your
 disagreement after each warning. If there are no warnings, then write
 "None."
 
+symtablelist.c: (in function SymTable_remove)
+symtablehash.c:291:7: Variable previousNode used before definition
+An rvalue is used that may not be initialized to a value on some execution
+    path. (Use -usedef to inhibit warning)
 
+I did not change my program basis this warning because, as a result of
+the way the control flow ofmy SymTable_remove function is defined,
+this will never be the case. The only scenario in which currentNode
+might be NULL (and thus previousNode) would not be defined would be if
+the symTable were empty, which is a case that is taken care of
+separately, prior to this block of code. If the currentNode is NULL
+initially, then the function returns then and there. Therefore, there
+will never be a case wherein the previousNode is used before definition.
 
 ------------------------------------------------------------------------
 What warnings does critTer generate on symtablelist.c, and what are your
@@ -58,15 +101,45 @@ disagreements with them? Copy the critTer warnings here, and express
 your disagreement after each warning. If there are no warnings, then
 write "None."
 
+symtablehash.c: line 102: medium priority:
+Do you want to validate 'value' through an assert?
 
+I did not change my program basis this warning since the assignment
+specifications and Ed both mentioned that it is acceptable for the value
+parameter to be NULL.
 
+symtablehash.c: line 159: medium priority:
+Do you want to validate 'value' through an assert?
+
+I did not change my program basis this warning since the assignment
+specifications and Ed both mentioned that it is acceptable for the value
+parameter to be NULL.
+
+symtablehash.c: line 468: medium priority:
+Do you want to validate 'extra' through an assert?
+
+I did not change my program basis this warning since Ed specifies that
+our symtable module is to be modelled off stack.c from precept wherein
+the extra parameter is not asserted. 
 ------------------------------------------------------------------------
 What warnings does splint generate on symtablehash.c, and what are your
 disagreements with them? Copy the splint warnings here, and express your
 disagreement after each warning. If there are no warnings, then write
 "None."
 
+symtablehash.c: (in function SymTable_remove)
+symtablehash.c:452:7: Variable previousNode used before definition
+An rvalue is used that may not be initialized to a value on some execution
+    path. (Use -usedef to inhibit warning)
 
+I did not change my program basis this warning because, as a result of
+the way the control flow ofmy SymTable_remove function is defined,
+this will never be the case. The only scenario in which currentNode
+might be NULL (and thus previousNode) would not be defined would be if
+the symTable were empty, which is a case that is taken care of
+separately, prior to this block of code. If the currentNode is NULL
+initially, then the function returns then and there. Therefore, there
+will never be a case wherein the previousNode is used before definition.
 
 ------------------------------------------------------------------------
 What warnings does critTer generate on symtablehash.c, and what are your
@@ -74,7 +147,26 @@ disagreements with them? Copy the critTer warnings here, and express
 your disagreement after each warning. If there are no warnings, then
 write "None."
 
+symtablehash.c: line 225: medium priority:
+Do you want to validate 'value' through an assert?
 
+I did not change my program basis this warning since the assignment
+specifications and Ed both mentioned that it is acceptable for the value
+parameter to be NULL.
+
+symtablehash.c: line 297: medium priority:
+Do you want to validate 'value' through an assert?
+
+I did not change my program basis this warning since the assignment
+specifications and Ed both mentioned that it is acceptable for the value
+parameter to be NULL.
+
+symtablehash.c: line 308: medium priority:
+Do you want to validate 'extra' through an assert?
+
+I did not change my program basis this warning since Ed specifies that
+our symtable module is to be modelled off stack.c from precept wherein
+the extra parameter is not asserted.
 
 ------------------------------------------------------------------------
 What are the CPU times reported by testsymtable.c with binding counts
@@ -83,22 +175,23 @@ implementation, (2) your non-expanding hash table implementation, and
 (3) your expanding hash table implementation? Fill in the blanks.
 
 The linked list implementation with:
--- 50 bindings consumed ________ seconds.
--- 500 bindings consumed ________ seconds.
--- 5000 bindings consumed ________ seconds.
--- 50000 bindings consumed ________ seconds.
--- 500000 bindings consumed ________ seconds.
+-- 50 bindings consumed 0.00 seconds.
+-- 500 bindings consumed 0.01 seconds.
+-- 5000 bindings consumed 0.99 seconds.
+-- 50000 bindings consumed 98.95 seconds.
+-- 500000 bindings consumed ________ seconds: the program was killed
+   for this number of bindings.
 
 The non-expanding hash table implementation with:
--- 50 bindings consumed ________ seconds.
--- 500 bindings consumed ________ seconds.
--- 5000 bindings consumed ________ seconds.
--- 50000 bindings consumed ________ seconds.
--- 500000 bindings consumed ________ seconds.
+-- 50 bindings consumed 0.00 seconds.
+-- 500 bindings consumed 0.00 seconds.
+-- 5000 bindings consumed 0.01 seconds.
+-- 50000 bindings consumed 0.38 seconds.
+-- 500000 bindings consumed 67.32 seconds.
 
 The expanding hash table implementation with:
--- 50 bindings consumed ________ seconds.
--- 500 bindings consumed ________ seconds.
--- 5000 bindings consumed ________ seconds.
--- 50000 bindings consumed ________ seconds.
--- 500000 bindings consumed ________ seconds.
+-- 50 bindings consumed 0.00 seconds.
+-- 500 bindings consumed 0.00 seconds.
+-- 5000 bindings consumed 0.01 seconds.
+-- 50000 bindings consumed 0.17 seconds.
+-- 500000 bindings consumed 0.93 seconds.
